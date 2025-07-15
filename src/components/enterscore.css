@@ -1,0 +1,163 @@
+/* ===== Main Container ===== */
+.enter-scores-form {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.4s ease-in-out;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.enter-scores-form h3 {
+  font-size: 22px;
+  color: #1d3557;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* ===== Message ===== */
+.form-message {
+  font-size: 15px;
+  margin-bottom: 15px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.form-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+}
+
+.form-message.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #c62828;
+}
+
+/* ===== Form Group ===== */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.form-group select {
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: 0.2s ease-in-out;
+}
+
+.form-group select:focus {
+  border-color: #0077cc;
+  box-shadow: 0 0 5px #0077cc44;
+}
+
+/* ===== Scores Table ===== */
+.scores-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.scores-table th,
+.scores-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.scores-table th {
+  background-color: #f0f8ff;
+  color: #1d3557;
+  font-weight: 600;
+}
+
+.scores-table input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease-in-out;
+}
+
+.scores-table input[type="number"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px #007bff44;
+}
+
+/* ===== Submit Button ===== */
+.form-actions {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.form-actions button {
+  background-color: #009688;
+  color: white;
+  padding: 10px 20px;
+  font-size: 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.form-actions button:hover {
+  background-color: #00796b;
+}
+
+.form-actions button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* ===== Animation ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .enter-scores-form {
+    padding: 15px;
+  }
+
+  .scores-table th,
+  .scores-table td {
+    font-size: 14px;
+    padding: 10px 6px;
+  }
+
+  .form-actions button {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .form-group select {
+    font-size: 14px;
+  }
+}

@@ -1,0 +1,96 @@
+/* Container */
+.teacher-management-container {
+  background-color: #f9f9fb;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Title */
+.teacher-management-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Error message */
+.teacher-error {
+  color: #e53935;
+  background-color: #ffe6e6;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+/* Section spacing */
+.teacher-form-section,
+.teacher-list-section {
+  margin-top: 20px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Button styles (used globally in buttons inside TeacherList or TeacherForm) */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #1976d2;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0f5ab7;
+}
+
+button.cancel-btn {
+  background-color: #757575;
+}
+
+button.cancel-btn:hover {
+  background-color: #5a5a5a;
+}
+
+button.delete-btn {
+  background-color: #d32f2f;
+}
+
+button.delete-btn:hover {
+  background-color: #b71c1c;
+}
+
+button.edit-btn {
+  background-color: #0288d1;
+}
+
+button.edit-btn:hover {
+  background-color: #0277bd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .teacher-management-container {
+    padding: 10px;
+  }
+
+  .teacher-management-title {
+    font-size: 20px;
+    text-align: center;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

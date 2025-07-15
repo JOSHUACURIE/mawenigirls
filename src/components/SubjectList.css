@@ -1,0 +1,104 @@
+.subject-list-container {
+  background-color: #fdfdfd;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.subject-list-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.subject-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.subject-table th,
+.subject-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.subject-table th {
+  background-color: #f0f8ff;
+  color: #333;
+}
+
+.subject-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.subject-table tr:hover {
+  background-color: #eef5ff;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  margin-right: 8px;
+}
+
+.edit-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #388e3c;
+}
+
+.delete-btn {
+  background-color: #e53935;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c62828;
+}
+
+.no-subjects {
+  color: #777;
+  font-style: italic;
+  padding: 10px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .subject-list-container {
+    padding: 10px;
+  }
+
+  .subject-list-title {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+}

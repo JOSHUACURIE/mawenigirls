@@ -1,0 +1,119 @@
+/* AddStudentForm.css */
+
+.add-student-container {
+  max-width: 500px;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.form-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1d3557;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.student-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.student-form input {
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccd6dd;
+  border-radius: 8px;
+  transition: border 0.3s ease;
+}
+
+.student-form input:focus {
+  outline: none;
+  border-color: #457b9d;
+  box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.2);
+}
+
+.student-form button {
+  padding: 12px;
+  background-color: #1d3557;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.student-form button:hover {
+  background-color: #457b9d;
+  transform: translateY(-1px);
+}
+
+.form-message {
+  margin-top: 15px;
+  font-weight: 500;
+  color: #2a9d8f;
+  text-align: center;
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .add-student-container {
+    padding: 20px;
+  }
+
+  .student-form input,
+  .student-form button {
+    font-size: 14px;
+  }
+}
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: #457b9d;
+  font-size: 16px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 12px 12px 36px;
+  font-size: 15px;
+  border: 1px solid #ccd6dd;
+  border-radius: 8px;
+  transition: border 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #457b9d;
+  box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.2);
+}
+
+/* Add disabled styling */
+.student-form button:disabled {
+  background-color: #90a4ae;
+  cursor: not-allowed;
+}

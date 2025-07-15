@@ -1,0 +1,243 @@
+/* ===== Root Container ===== */
+.student-list-container {
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.4s ease-in;
+}
+
+/* ===== Title ===== */
+.student-list-title {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #1d3557;
+  text-align: center;
+}
+
+/* ===== Filters and Export Button ===== */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filters input,
+.filters select {
+  padding: 8px 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  min-width: 200px;
+  transition: all 0.3s ease;
+}
+
+.filters input:focus,
+.filters select:focus {
+  border-color: #0077cc;
+  outline: none;
+  box-shadow: 0 0 5px #0077cc44;
+}
+
+.export-btn {
+  background-color: #009688;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.export-btn:hover {
+  background-color: #00796b;
+}
+
+/* ===== Table ===== */
+.table-container {
+  overflow-x: auto;
+}
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.student-table th,
+.student-table td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.student-table th {
+  background-color: #f1faff;
+  color: #1d3557;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.student-table th:hover {
+  background-color: #eef7ff;
+}
+
+.student-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.student-table input {
+  width: 100%;
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* ===== Action Buttons ===== */
+button {
+  padding: 6px 12px;
+  margin: 2px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.edit-btn {
+  background-color: #2196f3;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #1565c0;
+}
+
+.delete-btn {
+  background-color: #e53935;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c62828;
+}
+
+.save-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #388e3c;
+}
+
+.cancel-btn {
+  background-color: #757575;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #424242;
+}
+
+.editing-row {
+  background-color: #fffde7;
+}
+
+/* ===== Pagination ===== */
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: #eee;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.pagination .active-page {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}
+
+.pagination button:hover {
+  background-color: #cce6ff;
+}
+
+/* ===== Loading & Error Text ===== */
+.loading-text,
+.error-text {
+  text-align: center;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.error-text {
+  color: red;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .student-list-container {
+    padding: 15px;
+  }
+
+  .student-list-title {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters input,
+  .filters select,
+  .export-btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .student-table th,
+  .student-table td {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+
+  button {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+}
