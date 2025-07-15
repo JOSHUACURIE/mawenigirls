@@ -67,11 +67,8 @@ export const exportClassResults = (scores, className, stream) =>
 export const sendResultsSMS = (scores, className, stream) =>
   api.post("/results/send-sms", { scores, className, stream });
 
-<<<<<<< HEAD
-=======
 // ===================== AUTH API =====================
 export const login = (data) => api.post("/auth/login", data);
 export const signup = (data) => api.post("/auth/signup", data);
 
->>>>>>> afaa902 (fix: update API base URL and add login/signup)
 export default api;
