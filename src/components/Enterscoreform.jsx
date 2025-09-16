@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { getSubjectStudents, submitScores } from "../services/api";
+import { getSubjectStudents, submitScores as submitScoresApi } from "../services/api";
 import "./enterscore.css";
 
 const EnterScoresForm = ({ teacher, subjects = [] }) => {
@@ -13,7 +13,6 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
 
   const validSubjects = Array.isArray(subjects) ? subjects : [];
 
-  // ✅ Fetch assigned students when subject changes
   useEffect(() => {
     const fetchStudentsForSubject = async () => {
       if (!selectedSubject) return;
@@ -23,22 +22,22 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
 
       try {
         const response = await getSubjectStudents(selectedSubject);
-        const subject = response.data.subject;
+        const assignedStudents = Array.isArray(response.data.students) ? response.data.students : [];
 
-        if (!subject || !Array.isArray(subject.students) || subject.students.length === 0) {
-          setStudents([]);
-          setScores([]);
+        if (assignedStudents.length === 0) {
           setMessage("No students assigned to this subject.");
-          return;
         }
 
-        setStudents(subject.students);
+        setStudents(assignedStudents);
         setScores(
-          subject.students.map((s) => ({ studentId: s._id, score: "" }))
+          assignedStudents.map((s) => ({
+            studentId: s._id,
+            score: "",
+          }))
         );
       } catch (err) {
-        console.error("❌ Error fetching students:", err.response?.data?.message || err.message);
-        setMessage("Failed to load students.");
+        console.error("❌ Error fetching students:", err.message);
+        setMessage(err.response?.data?.message || "Failed to load students.");
         setStudents([]);
         setScores([]);
       } finally {
@@ -72,17 +71,20 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
     setMessage("");
 
     try {
-      await submitScores({
+      await submitScoresApi({
         teacherId: teacher._id,
         subjectId: selectedSubject,
-        scores: scores.map((entry) => ({ studentId: entry.studentId, score: Number(entry.score) })),
+        scores: scores.map((entry) => ({
+          studentId: entry.studentId,
+          score: Number(entry.score),
+        })),
       });
 
       setMessage("✅ Scores submitted successfully!");
       setScores(scores.map((score) => ({ ...score, score: "" })));
     } catch (err) {
-      console.error("❌ Error submitting scores:", err.response?.data?.message || err.message);
-      setMessage("❌ Failed to submit scores. Try again.");
+      console.error("❌ Error submitting scores:", err.message);
+      setMessage(err.response?.data?.message || "❌ Failed to submit scores. Try again.");
     } finally {
       setSaving(false);
     }
@@ -91,7 +93,6 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
   return (
     <div className="enter-scores-form">
       <h3>📝 Submit Scores</h3>
-
       {message && (
         <p className={`form-message ${message.startsWith("✅") ? "success" : "error"}`}>
           {message}
