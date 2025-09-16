@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from 'prop-types';
 import api from "../services/api";
-import './enterscore.css'
+import './enterscore.css';
 
 const EnterScoresForm = ({ teacher, subjects = [] }) => {
   const [students, setStudents] = useState([]);
@@ -11,7 +11,6 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Ensure subjects is always an array
   const validSubjects = Array.isArray(subjects) ? subjects : [];
 
   useEffect(() => {
@@ -21,21 +20,15 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
       setLoading(true);
       setMessage("");
       try {
-        // Fetch students linked to the selected subject
         const studentRes = await api.get(`/students/by-subject/${selectedSubject}`);
         const studentList = Array.isArray(studentRes.data) ? studentRes.data : [];
 
         setStudents(studentList);
-
-        setScores(
-          studentList.map((s) => ({
-            studentId: s._id,
-            score: "",  // single score now
-          }))
-        );
+        setScores(studentList.map(s => ({ studentId: s._id, score: "" })));
       } catch (err) {
         console.error("❌ Error fetching students:", err.message);
         setMessage("Failed to load students.");
+        setStudents([]);
       } finally {
         setLoading(false);
       }
@@ -45,7 +38,6 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
   }, [selectedSubject]);
 
   const handleScoreChange = (index, value) => {
-    // Only allow numbers between 0 and 100 or empty string
     if (value === "" || (/^\d{1,3}$/.test(value) && Number(value) <= 100)) {
       const updated = [...scores];
       updated[index].score = value;
@@ -56,9 +48,8 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all scores filled and valid numbers 0-100
     const invalidScores = scores.filter(
-      (entry) => entry.score === "" || isNaN(entry.score) || Number(entry.score) < 0 || Number(entry.score) > 100
+      entry => entry.score === "" || isNaN(entry.score) || Number(entry.score) < 0 || Number(entry.score) > 100
     );
     if (invalidScores.length > 0) {
       setMessage("❌ Please enter valid scores (0-100) for all students.");
@@ -72,14 +63,11 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
       await api.post("/scores/submit", {
         teacherId: teacher._id,
         subjectId: selectedSubject,
-        scores: scores.map((entry) => ({
-          studentId: entry.studentId,
-          score: Number(entry.score),
-        })),
+        scores: scores.map(entry => ({ studentId: entry.studentId, score: Number(entry.score) })),
       });
 
       setMessage("✅ Scores submitted successfully!");
-      setScores(scores.map(score => ({ ...score, score: "" }))); // Clear scores inputs
+      setScores(scores.map(score => ({ ...score, score: "" })));
     } catch (err) {
       console.error("❌ Error submitting scores:", err.message);
       setMessage("❌ Failed to submit scores. Try again.");
@@ -91,6 +79,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
   return (
     <div className="enter-scores-form">
       <h3>📝 Submit Scores</h3>
+
       {message && (
         <p className={`form-message ${message.startsWith("✅") ? "success" : "error"}`}>
           {message}
@@ -107,7 +96,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
         >
           <option value="">-- Select Subject --</option>
           {validSubjects.length > 0 ? (
-            validSubjects.map((subject) => (
+            validSubjects.map(subject => (
               <option key={subject._id} value={subject._id}>
                 {subject.name} ({subject.form})
               </option>
@@ -140,7 +129,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
                       max="100"
                       placeholder="0-100"
                       value={scores[index]?.score || ""}
-                      onChange={(e) => handleScoreChange(index, e.target.value)}
+                      onChange={e => handleScoreChange(index, e.target.value)}
                       required
                       disabled={saving}
                     />
@@ -157,7 +146,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
           </div>
         </form>
       ) : (
-        selectedSubject && <p>No students found for this subject's form.</p>
+        selectedSubject && <p>No students found for this subject.</p>
       )}
     </div>
   );
