@@ -1,4 +1,3 @@
-// AddStudentForm.jsx
 import React, { useState, useEffect } from "react";
 import { FaUser, FaHashtag, FaPhone, FaStream, FaListOl } from "react-icons/fa";
 import api from "../services/api";
@@ -11,7 +10,7 @@ const AddStudentForm = () => {
     stream: "",
     parentPhone: "",
     form: "",
-    subjects: [], // ✅ New field for selected subjects
+    subjects: [],
   });
 
   const [errors, setErrors] = useState({});
@@ -19,7 +18,6 @@ const AddStudentForm = () => {
   const [loading, setLoading] = useState(false);
   const [subjectsList, setSubjectsList] = useState([]);
 
-  // Fetch subjects from backend
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -32,19 +30,16 @@ const AddStudentForm = () => {
     fetchSubjects();
   }, []);
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle subject selection
   const handleSubjectsChange = (e) => {
     const options = Array.from(e.target.selectedOptions, (option) => option.value);
     setFormData((prev) => ({ ...prev, subjects: options }));
   };
 
-  // Validation
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
@@ -54,7 +49,6 @@ const AddStudentForm = () => {
     return newErrors;
   };
 
-  // Submit student
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
