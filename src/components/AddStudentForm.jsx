@@ -10,16 +10,16 @@ const AddStudentForm = () => {
     admissionNumber: "",
     stream: "",
     parentPhone: "",
-    form: "", // class/form level
-    subjects: [], // new field for assigned subjects
+    form: "",
+    subjects: [], // ✅ New field for selected subjects
   });
 
-  const [subjectsList, setSubjectsList] = useState([]); // fetched from backend
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [subjectsList, setSubjectsList] = useState([]);
 
-  // Fetch available subjects from backend
+  // Fetch subjects from backend
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -32,22 +32,19 @@ const AddStudentForm = () => {
     fetchSubjects();
   }, []);
 
+  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle subject selection
   const handleSubjectsChange = (e) => {
     const options = Array.from(e.target.selectedOptions, (option) => option.value);
-    setFormData((prev) => ({
-      ...prev,
-      subjects: options,
-    }));
+    setFormData((prev) => ({ ...prev, subjects: options }));
   };
 
+  // Validation
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
@@ -57,6 +54,7 @@ const AddStudentForm = () => {
     return newErrors;
   };
 
+  // Submit student
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -69,7 +67,7 @@ const AddStudentForm = () => {
     setMessage("");
 
     try {
-      await api.post("/students", formData); // send subjects too
+      await api.post("/students", formData);
       setMessage("✅ Student added successfully!");
       setFormData({
         name: "",
@@ -164,6 +162,7 @@ const AddStudentForm = () => {
             multiple
             value={formData.subjects}
             onChange={handleSubjectsChange}
+            size={subjectsList.length > 5 ? 5 : subjectsList.length}
           >
             {subjectsList.map((subj) => (
               <option key={subj._id} value={subj._id}>
@@ -171,10 +170,45 @@ const AddStudentForm = () => {
               </option>
             ))}
           </select>
+
+          <button
+            type="button"
+            className="select-all-btn"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                subjects: subjectsList.map((s) => s._id),
+              }))
+            }
+          >
+            Select All
+          </button>
+
+          {/* Selected subjects tags */}
+          <div className="selected-subjects">
+            {formData.subjects.map((subjId) => {
+              const subj = subjectsList.find((s) => s._id === subjId);
+              if (!subj) return null;
+              return (
+                <span
+                  key={subjId}
+                  className="subject-tag"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      subjects: prev.subjects.filter((id) => id !== subjId),
+                    }))
+                  }
+                >
+                  {subj.name} &times;
+                </span>
+              );
+            })}
+          </div>
         </div>
         {errors.subjects && <p className="error-text">{errors.subjects}</p>}
 
-        {/* Submit */}
+        {/* Submit Button */}
         <button type="submit" disabled={loading} className="submit-btn">
           {loading ? "Adding..." : "Add Student"}
         </button>
