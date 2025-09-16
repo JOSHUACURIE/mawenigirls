@@ -6,7 +6,10 @@ import AssignedSubjectsList from "../components/Assignedsubjectslist";
 
 const TeacherDashboard = () => {
   const [tab, setTab] = useState("subjects");
-  const [namedSubjects, setNamedSubjects] = useState([]);
+  const [assignedSubjects, setAssignedSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [errorSubjects, setErrorSubjects] = useState(null);
+
   const { logout, user } = useAuth();
 
   const handleLogout = () => {
@@ -15,23 +18,25 @@ const TeacherDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchSubjects = async () => {
+    const fetchAssignedSubjects = async () => {
+      setLoadingSubjects(true);
+      setErrorSubjects(null);
       try {
         const res = await api.get("/teachers/me/subjects");
-        const subjects = Array.isArray(res.data)
-          ? res.data
-          : typeof res.data === "object" && res.data.subjects
-          ? res.data.subjects
-          : [];
-        setNamedSubjects(subjects);
+        // controller returns { success, count, subjects }
+        const subjects = res.data?.subjects ?? [];
+        setAssignedSubjects(subjects);
       } catch (err) {
         console.error("❌ Failed to fetch assigned subjects:", err.message);
-        setNamedSubjects([]);
+        setErrorSubjects(err.response?.data?.message || "Failed to load subjects.");
+        setAssignedSubjects([]);
+      } finally {
+        setLoadingSubjects(false);
       }
     };
 
     if (tab === "scores") {
-      fetchSubjects();
+      fetchAssignedSubjects();
     }
   }, [tab]);
 
@@ -114,11 +119,15 @@ const TeacherDashboard = () => {
 
         <div>
           {tab === "subjects" && <AssignedSubjectsList />}
+
           {tab === "scores" && (
-            <EnterScoresForm
-              teacher={user}
-              subjects={Array.isArray(namedSubjects) ? namedSubjects : []}
-            />
+            <>
+              {loadingSubjects && <p>Loading subjects...</p>}
+              {errorSubjects && <p style={{ color: "red" }}>{errorSubjects}</p>}
+              {!loadingSubjects && !errorSubjects && (
+                <EnterScoresForm teacher={user} subjects={assignedSubjects} />
+              )}
+            </>
           )}
         </div>
       </div>
