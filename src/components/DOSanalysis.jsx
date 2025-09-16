@@ -16,9 +16,7 @@ const DOSResultsAnalysis = () => {
     try {
       setLoading(true);
       setMessage("Loading results...");
-      const res = await api.get("/results", {
-        params: { form: selectedForm },
-      });
+      const res = await api.get("/results", { params: { form: selectedForm } });
 
       if (!res.data || res.data.length === 0) {
         setMessage("⚠️ No results found for this class");
@@ -26,7 +24,6 @@ const DOSResultsAnalysis = () => {
         return;
       }
 
-      // Extract subjects from first student
       const subjectList = res.data[0].scores.map((s) => s.subjectName);
       setSubjects(subjectList);
       setAnalyzedResults(res.data);
@@ -66,186 +63,6 @@ const DOSResultsAnalysis = () => {
     }
   };
 
-  // Generate individual Word report dynamically
-  const handleDownloadIndividual = async (student) => {
-    try {
-      const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } =
-        await import("docx");
-
-      const subjectRows = student.scores.map(
-        (s) =>
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph(s.subjectName)] }),
-              new TableCell({ children: [new Paragraph(String(s.score ?? "-"))] }),
-              new TableCell({ children: [new Paragraph(s.grade ?? "-")]}),
-            ],
-          })
-      );
-
-      const doc = new Document({
-        sections: [
-          {
-            children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "ST. PETERS MAWENI GIRLS SECONDARY SCHOOL",
-                    bold: true,
-                  }),
-                ],
-              }),
-              new Paragraph("Terminal Examination Results"),
-              new Paragraph(""),
-              new Paragraph(`Name: ${student.name}`),
-              new Paragraph(`Admission No: ${student.admissionNumber}`),
-              new Paragraph(`Class: ${selectedForm} ${student.stream || ""}`),
-              new Paragraph(""),
-              new Table({
-                rows: [
-                  new TableRow({
-                    children: [
-                      new TableCell({ children: [new Paragraph("Subject")] }),
-                      new TableCell({ children: [new Paragraph("Marks")] }),
-                      new TableCell({ children: [new Paragraph("Grade")] }),
-                    ],
-                  }),
-                  ...subjectRows,
-                  new TableRow({
-                    children: [
-                      new TableCell({ children: [new Paragraph("Total")] }),
-                      new TableCell({ children: [new Paragraph(String(student.totalMarks ?? "-"))] }),
-                      new TableCell({ children: [new Paragraph("")] }),
-                    ],
-                  }),
-                  new TableRow({
-                    children: [
-                      new TableCell({ children: [new Paragraph("Overall Grade")] }),
-                      new TableCell({ children: [new Paragraph("")] }),
-                      new TableCell({ children: [new Paragraph(student.overallGrade ?? "-")]}),
-                    ],
-                  }),
-                ],
-              }),
-              new Paragraph(""),
-              new Paragraph("Principal's Signature: __________________________"),
-              new Paragraph("Date: __________________________"),
-            ],
-          },
-        ],
-      });
-
-      const buffer = await Packer.toBuffer(doc);
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${student.admissionNumber}_Result.docx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error("❌ Failed to download Word document:", err);
-      setMessage(`❌ Failed to export result for ${student.admissionNumber}`);
-    }
-  };
-
-  // Download all individual reports as ZIP
-  const handleDownloadAllIndividual = async () => {
-    if (analyzedResults.length === 0) return;
-
-    try {
-      const JSZip = (await import("jszip")).default;
-      const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } =
-        await import("docx");
-
-      const zip = new JSZip();
-
-      for (const student of analyzedResults) {
-        const subjectRows = student.scores.map(
-          (s) =>
-            new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph(s.subjectName)] }),
-                new TableCell({ children: [new Paragraph(String(s.score ?? "-"))] }),
-                new TableCell({ children: [new Paragraph(s.grade ?? "-")]}),
-              ],
-            })
-        );
-
-        const doc = new Document({
-          sections: [
-            {
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: "ST. PETERS MAWENI GIRLS SECONDARY SCHOOL",
-                      bold: true,
-                    }),
-                  ],
-                }),
-                new Paragraph("Terminal Examination Results"),
-                new Paragraph(""),
-                new Paragraph(`Name: ${student.name}`),
-                new Paragraph(`Admission No: ${student.admissionNumber}`),
-                new Paragraph(`Class: ${selectedForm} ${student.stream || ""}`),
-                new Paragraph(""),
-                new Table({
-                  rows: [
-                    new TableRow({
-                      children: [
-                        new TableCell({ children: [new Paragraph("Subject")] }),
-                        new TableCell({ children: [new Paragraph("Marks")] }),
-                        new TableCell({ children: [new Paragraph("Grade")] }),
-                      ],
-                    }),
-                    ...subjectRows,
-                    new TableRow({
-                      children: [
-                        new TableCell({ children: [new Paragraph("Total")] }),
-                        new TableCell({ children: [new Paragraph(String(student.totalMarks ?? "-"))] }),
-                        new TableCell({ children: [new Paragraph("")] }),
-                      ],
-                    }),
-                    new TableRow({
-                      children: [
-                        new TableCell({ children: [new Paragraph("Overall Grade")] }),
-                        new TableCell({ children: [new Paragraph("")] }),
-                        new TableCell({ children: [new Paragraph(student.overallGrade ?? "-")]}),
-                      ],
-                    }),
-                  ],
-                }),
-                new Paragraph(""),
-                new Paragraph("Principal's Signature: __________________________"),
-                new Paragraph("Date: __________________________"),
-              ],
-            },
-          ],
-        });
-
-        const buffer = await Packer.toBuffer(doc);
-        zip.file(`${student.admissionNumber}_Result.docx`, buffer);
-      }
-
-      const content = await zip.generateAsync({ type: "blob" });
-      const url = window.URL.createObjectURL(content);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${selectedForm}_Individual_Results.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setMessage(`✅ ${analyzedResults.length} individual reports downloaded`);
-    } catch (err) {
-      console.error("❌ Failed to download ZIP:", err);
-      setMessage("❌ Failed to export individual reports");
-    }
-  };
-
   return (
     <div className="dos-results-analysis">
       <h3>Results Analysis</h3>
@@ -273,13 +90,6 @@ const DOSResultsAnalysis = () => {
         >
           Export All to Excel
         </button>
-
-        <button
-          onClick={handleDownloadAllIndividual}
-          disabled={analyzedResults.length === 0}
-        >
-          Download All Individual
-        </button>
       </div>
 
       {message && (
@@ -301,7 +111,6 @@ const DOSResultsAnalysis = () => {
                 ))}
                 <th>Total</th>
                 <th>Grade</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -316,11 +125,6 @@ const DOSResultsAnalysis = () => {
                   ))}
                   <td>{student.totalMarks ?? "-"}</td>
                   <td>{student.overallGrade ?? "-"}</td>
-                  <td>
-                    <button onClick={() => handleDownloadIndividual(student)}>
-                      Download
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
