@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAssignedSubjects } from "../services/api";
+import api from "../services/api";
 
 const AssignedSubjectsList = () => {
   const [subjects, setSubjects] = useState([]);
@@ -18,7 +18,7 @@ const AssignedSubjectsList = () => {
           throw new Error("No authentication token found");
         }
 
-        const response = await getAssignedSubjects();
+        const response = await api.get("/teachers/me/subjects"); // ✅ Updated API
 
         if (!response.data || !Array.isArray(response.data.subjects)) {
           throw new Error("No data received from server");
@@ -92,9 +92,7 @@ const AssignedSubjectsList = () => {
         </div>
         <div className="card-body">
           {subjects.length === 0 ? (
-            <div className="alert alert-info">
-              No subjects currently assigned to you.
-            </div>
+            <div className="alert alert-info">No subjects currently assigned to you.</div>
           ) : (
             <ul className="list-group">
               {subjects.map((subject) => (
