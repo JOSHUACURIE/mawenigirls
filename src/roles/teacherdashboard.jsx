@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import EnterScoresForm from "../components/Enterscoreform";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
-import AssignedSubjectsList from "../components/Assignedsubjectslist";
 
 const TeacherDashboard = () => {
   const [tab, setTab] = useState("subjects");
   const [assignedSubjects, setAssignedSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [errorSubjects, setErrorSubjects] = useState(null);
+  const [selectedSubjectForScores, setSelectedSubjectForScores] = useState("");
 
   const { logout, user } = useAuth();
 
@@ -17,13 +17,13 @@ const TeacherDashboard = () => {
     window.location.href = "/";
   };
 
+  // Fetch assigned subjects (for both tabs)
   useEffect(() => {
     const fetchAssignedSubjects = async () => {
       setLoadingSubjects(true);
       setErrorSubjects(null);
       try {
         const res = await api.get("/teachers/me/subjects");
-        // controller returns { success, count, subjects }
         const subjects = res.data?.subjects ?? [];
         setAssignedSubjects(subjects);
       } catch (err) {
@@ -35,10 +35,14 @@ const TeacherDashboard = () => {
       }
     };
 
-    if (tab === "scores") {
-      fetchAssignedSubjects();
-    }
-  }, [tab]);
+    fetchAssignedSubjects();
+  }, []);
+
+  // Switch to scores tab when a subject is clicked
+  const handleSubjectClick = (subjectId) => {
+    setSelectedSubjectForScores(subjectId);
+    setTab("scores");
+  };
 
   return (
     <div style={{ display: "flex", height: "100vh", fontFamily: "Segoe UI, sans-serif" }}>
@@ -117,19 +121,50 @@ const TeacherDashboard = () => {
             : "Dashboard"}
         </h2>
 
-        <div>
-          {tab === "subjects" && <AssignedSubjectsList />}
+        {/* Subjects Tab */}
+        {tab === "subjects" && (
+          <>
+            {loadingSubjects && <p>Loading subjects...</p>}
+            {errorSubjects && <p style={{ color: "red" }}>{errorSubjects}</p>}
+            {!loadingSubjects && !errorSubjects && assignedSubjects.length === 0 && (
+              <div>No subjects currently assigned to you.</div>
+            )}
+            {!loadingSubjects && !errorSubjects && assignedSubjects.length > 0 && (
+              <ul className="list-group">
+                {assignedSubjects.map((subject) => (
+                  <li
+                    key={subject._id}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleSubjectClick(subject._id)}
+                  >
+                    <div>
+                      <strong>{subject.name}</strong> - Form {subject.form}
+                    </div>
+                    <span className="badge bg-primary rounded-pill">
+                      {subject.students?.length ?? 0} students
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
 
-          {tab === "scores" && (
-            <>
-              {loadingSubjects && <p>Loading subjects...</p>}
-              {errorSubjects && <p style={{ color: "red" }}>{errorSubjects}</p>}
-              {!loadingSubjects && !errorSubjects && (
-                <EnterScoresForm teacher={user} subjects={assignedSubjects} />
-              )}
-            </>
-          )}
-        </div>
+        {/* Scores Tab */}
+        {tab === "scores" && (
+          <>
+            {loadingSubjects && <p>Loading subjects...</p>}
+            {errorSubjects && <p style={{ color: "red" }}>{errorSubjects}</p>}
+            {!loadingSubjects && !errorSubjects && (
+              <EnterScoresForm
+                teacher={user}
+                subjects={assignedSubjects}
+                selectedSubject={selectedSubjectForScores}
+              />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
