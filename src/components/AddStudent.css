@@ -23,6 +23,42 @@
   flex-direction: column;
   gap: 15px;
 }
+/* AddStudent.css */
+.selected-subjects {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.subject-tag {
+  background-color: #cceeff;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #005580;
+  cursor: pointer;
+  user-select: none;
+}
+
+.subject-tag:hover {
+  background-color: #99ddff;
+}
+
+.select-all-btn {
+  margin-top: 5px;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.select-all-btn:hover {
+  background-color: #005a99;
+}
+
 
 .student-form input {
   padding: 12px;
