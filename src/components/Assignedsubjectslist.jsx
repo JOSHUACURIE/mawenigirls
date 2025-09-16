@@ -20,7 +20,7 @@ const AssignedSubjectsList = () => {
 
         const response = await getAssignedSubjects();
 
-        if (!response.data || !response.data.subjects) {
+        if (!response.data || !Array.isArray(response.data.subjects)) {
           throw new Error("No data received from server");
         }
 
@@ -28,11 +28,11 @@ const AssignedSubjectsList = () => {
       } catch (err) {
         console.error("Error loading subjects:", err);
 
-        let errorMessage = "Failed to load assigned subjects";
+        let errorMessage = "Failed to load assigned subjects.";
         if (err.response) {
           errorMessage = err.response.data?.message || err.response.statusText;
         } else if (err.request) {
-          errorMessage = "Network error - please check your connection";
+          errorMessage = "Network error - please check your connection.";
         } else if (err.message.includes("token")) {
           errorMessage = "Session expired - please log in again";
         }
@@ -106,7 +106,7 @@ const AssignedSubjectsList = () => {
                     <strong>{subject.name}</strong> - Form {subject.form}
                   </div>
                   <span className="badge bg-primary rounded-pill">
-                    {subject.studentCount} students
+                    {subject.studentCount ?? 0} students
                   </span>
                 </li>
               ))}
