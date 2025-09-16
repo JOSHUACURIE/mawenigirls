@@ -21,20 +21,20 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
       setMessage("");
 
       try {
-        // ✅ Fetch the selected subject and populate its assigned students
-        const response = await api.get(`/subjects/${selectedSubject}/students`);
-        const subject = response.data.subject;
+        // ✅ Fetch students assigned to the selected subject
+        const response = await api.getSubjectStudents(selectedSubject);
+        const assignedStudents = response.data.students || [];
 
-        if (!subject || !Array.isArray(subject.students)) {
+        if (assignedStudents.length === 0) {
           setStudents([]);
           setScores([]);
           setMessage("No students assigned to this subject.");
           return;
         }
 
-        setStudents(subject.students);
+        setStudents(assignedStudents);
         setScores(
-          subject.students.map((s) => ({
+          assignedStudents.map((s) => ({
             studentId: s._id,
             score: "",
           }))
@@ -64,7 +64,8 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
     e.preventDefault();
 
     const invalidScores = scores.filter(
-      (entry) => entry.score === "" || isNaN(entry.score) || Number(entry.score) < 0 || Number(entry.score) > 100
+      (entry) =>
+        entry.score === "" || isNaN(entry.score) || Number(entry.score) < 0 || Number(entry.score) > 100
     );
     if (invalidScores.length > 0) {
       setMessage("❌ Please enter valid scores (0-100) for all students.");
@@ -75,7 +76,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
     setMessage("");
 
     try {
-      await api.post("/scores/submit", {
+      await api.submitScores({
         teacherId: teacher._id,
         subjectId: selectedSubject,
         scores: scores.map((entry) => ({
