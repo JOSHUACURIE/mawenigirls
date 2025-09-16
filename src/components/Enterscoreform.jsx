@@ -3,8 +3,7 @@ import PropTypes from "prop-types";
 import api from "../services/api";
 import "./enterscore.css";
 
-const EnterScoresForm = ({ teacher }) => {
-  const [subjects, setSubjects] = useState([]);
+const EnterScoresForm = ({ teacher, subjects = [] }) => {
   const [students, setStudents] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [scores, setScores] = useState([]);
@@ -12,47 +11,46 @@ const EnterScoresForm = ({ teacher }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Fetch teacher's assigned subjects with student info
+  const validSubjects = Array.isArray(subjects) ? subjects : [];
+
   useEffect(() => {
-    const fetchAssignedSubjects = async () => {
+    const fetchStudentsForSubject = async () => {
+      if (!selectedSubject) return;
+
       setLoading(true);
       setMessage("");
+
       try {
-        const res = await api.get(`/teachers/me/subjects`);
-        if (res.data && Array.isArray(res.data.subjects)) {
-          setSubjects(res.data.subjects);
-        } else {
-          setSubjects([]);
+        // ✅ Fetch the selected subject and populate its assigned students
+        const response = await api.get(`/subjects/${selectedSubject}/students`);
+        const subject = response.data.subject;
+
+        if (!subject || !Array.isArray(subject.students)) {
+          setStudents([]);
+          setScores([]);
+          setMessage("No students assigned to this subject.");
+          return;
         }
+
+        setStudents(subject.students);
+        setScores(
+          subject.students.map((s) => ({
+            studentId: s._id,
+            score: "",
+          }))
+        );
       } catch (err) {
-        console.error("❌ Error fetching subjects:", err.message);
-        setMessage("Failed to load assigned subjects.");
+        console.error("❌ Error fetching students:", err.message);
+        setMessage("Failed to load students.");
+        setStudents([]);
+        setScores([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAssignedSubjects();
-  }, []);
-
-  // Update students when subject changes
-  useEffect(() => {
-    if (!selectedSubject) {
-      setStudents([]);
-      setScores([]);
-      return;
-    }
-
-    const subject = subjects.find((s) => s._id === selectedSubject);
-    if (subject) {
-      const studentList = subject.students || [];
-      setStudents(studentList);
-      setScores(studentList.map((s) => ({ studentId: s._id, score: "" })));
-    } else {
-      setStudents([]);
-      setScores([]);
-    }
-  }, [selectedSubject, subjects]);
+    fetchStudentsForSubject();
+  }, [selectedSubject]);
 
   const handleScoreChange = (index, value) => {
     if (value === "" || (/^\d{1,3}$/.test(value) && Number(value) <= 100)) {
@@ -80,7 +78,10 @@ const EnterScoresForm = ({ teacher }) => {
       await api.post("/scores/submit", {
         teacherId: teacher._id,
         subjectId: selectedSubject,
-        scores: scores.map((entry) => ({ studentId: entry.studentId, score: Number(entry.score) })),
+        scores: scores.map((entry) => ({
+          studentId: entry.studentId,
+          score: Number(entry.score),
+        })),
       });
 
       setMessage("✅ Scores submitted successfully!");
@@ -96,7 +97,6 @@ const EnterScoresForm = ({ teacher }) => {
   return (
     <div className="enter-scores-form">
       <h3>📝 Submit Scores</h3>
-
       {message && (
         <p className={`form-message ${message.startsWith("✅") ? "success" : "error"}`}>
           {message}
@@ -109,14 +109,18 @@ const EnterScoresForm = ({ teacher }) => {
           value={selectedSubject}
           onChange={(e) => setSelectedSubject(e.target.value)}
           required
-          disabled={subjects.length === 0 || saving}
+          disabled={validSubjects.length === 0 || saving}
         >
           <option value="">-- Select Subject --</option>
-          {subjects.map((subject) => (
-            <option key={subject._id} value={subject._id}>
-              {subject.name} ({subject.form})
-            </option>
-          ))}
+          {validSubjects.length > 0
+            ? validSubjects.map((subject) => (
+                <option key={subject._id} value={subject._id}>
+                  {subject.name} ({subject.form})
+                </option>
+              ))
+            : (
+                <option value="" disabled>No subjects available</option>
+              )}
         </select>
       </div>
 
@@ -159,7 +163,7 @@ const EnterScoresForm = ({ teacher }) => {
           </div>
         </form>
       ) : (
-        selectedSubject && <p>No students found for this subject.</p>
+        selectedSubject && <p>No students assigned to this subject.</p>
       )}
     </div>
   );
@@ -167,6 +171,11 @@ const EnterScoresForm = ({ teacher }) => {
 
 EnterScoresForm.propTypes = {
   teacher: PropTypes.object.isRequired,
+  subjects: PropTypes.array,
+};
+
+EnterScoresForm.defaultProps = {
+  subjects: [],
 };
 
 export default EnterScoresForm;
