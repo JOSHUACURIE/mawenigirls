@@ -13,7 +13,6 @@ const DOSDashboard = () => {
   const [activeTab, setActiveTab] = useState("add");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [subjects, setSubjects] = useState([]);
-  const [gradingMethod, setGradingMethod] = useState("points"); // default grading method
   const { logout } = useAuth();
 
   useEffect(() => {
@@ -46,7 +45,7 @@ const DOSDashboard = () => {
       case "scores":
         return <DosScoresView subjects={subjects} />;
       case "analysis":
-        return <DOSResultsAnalysis gradingMethod={gradingMethod} />;
+        return <DOSResultsAnalysis />;
       default:
         return <p>Select a tab</p>;
     }
@@ -154,20 +153,6 @@ const DOSDashboard = () => {
             analysis: "📈 Results Analysis",
           }[activeTab] || "📊 Dashboard"}
         </h2>
-
-        {activeTab === "analysis" && (
-          <div className="grading-selector">
-            <label htmlFor="gradingMethod">Grading System: </label>
-            <select
-              id="gradingMethod"
-              value={gradingMethod}
-              onChange={(e) => setGradingMethod(e.target.value)}
-            >
-              <option value="points">Points-based</option>
-              <option value="totalMarks">Total Marks</option>
-            </select>
-          </div>
-        )}
 
         <div className="dos-content">{renderContent()}</div>
       </div>
