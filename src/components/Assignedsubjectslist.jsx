@@ -18,10 +18,12 @@ const AssignedSubjectsList = () => {
           throw new Error("No authentication token found");
         }
 
-        const response = await api.get("/teachers/me/subjects"); // ✅ Updated API
+        // ✅ Call the updated endpoint for assigned subjects
+        const response = await api.get("/teachers/me/subjects");
 
+        // Validate the response
         if (!response.data || !Array.isArray(response.data.subjects)) {
-          throw new Error("No data received from server");
+          throw new Error("No subjects assigned to this teacher.");
         }
 
         setSubjects(response.data.subjects);
@@ -92,7 +94,9 @@ const AssignedSubjectsList = () => {
         </div>
         <div className="card-body">
           {subjects.length === 0 ? (
-            <div className="alert alert-info">No subjects currently assigned to you.</div>
+            <div className="alert alert-info">
+              No subjects currently assigned to you.
+            </div>
           ) : (
             <ul className="list-group">
               {subjects.map((subject) => (
@@ -104,7 +108,7 @@ const AssignedSubjectsList = () => {
                     <strong>{subject.name}</strong> - Form {subject.form}
                   </div>
                   <span className="badge bg-primary rounded-pill">
-                    {subject.studentCount ?? 0} students
+                    {subject.students?.length ?? 0} students
                   </span>
                 </li>
               ))}
