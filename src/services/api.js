@@ -28,13 +28,20 @@ api.interceptors.response.use(
 );
 
 // ===================== SUBJECT API =====================
-export const getSubjects = () => api.get("/subjects");
+export const getSubjects = () => api.get("/subjects"); // All subjects (DOS)
 export const getSubjectById = (id) => api.get(`/subjects/${id}`);
 export const addSubject = ({ name, form, teacherId }) =>
   api.post("/subjects", { name, form, teacherId });
 export const updateSubject = (id, { name, form, teacherId }) =>
   api.put(`/subjects/${id}`, { name, form, teacherId });
 export const deleteSubject = (id) => api.delete(`/subjects/${id}`);
+
+// ✅ Get minimal info for dropdowns
+export const getAllSubjects = () => api.get("/subjects/all/list");
+
+// ✅ Get students assigned to a subject (for teacher score entry)
+export const getSubjectStudents = (subjectId) =>
+  api.get(`/subjects/${subjectId}/students`);
 
 // ===================== TEACHER API =====================
 export const getTeachers = () => api.get("/teachers");
@@ -52,7 +59,7 @@ export const getScores = (params = {}) => api.get("/scores", { params });
 export const getScoreOptions = () => api.get("/scores/options");
 export const submitScores = ({ teacherId, subjectId, scores }) =>
   api.post("/scores", { teacherId, subjectId, scores });
-export const updateScore = (scoreId, data) => api.put(`/scores/${scoreId}`, data);
+export const updateScore = (scoreId, data) => api.put(`/subjects/score/${scoreId}`, data);
 
 // ===================== RESULT API =====================
 export const generateResults = ({ className, stream }) =>
