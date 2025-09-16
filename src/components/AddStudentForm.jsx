@@ -1,9 +1,8 @@
 // AddStudentForm.jsx
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { FaUser, FaHashtag, FaPhone, FaStream, FaListOl } from "react-icons/fa";
-import "./AddStudent.css";
 import api from "../services/api";
+import "./AddStudent.css";
 
 const AddStudentForm = () => {
   const [formData, setFormData] = useState({
@@ -11,12 +10,27 @@ const AddStudentForm = () => {
     admissionNumber: "",
     stream: "",
     parentPhone: "",
-    form: "", // ✅ replaced classLevel with form
+    form: "", // class/form level
+    subjects: [], // new field for assigned subjects
   });
 
+  const [subjectsList, setSubjectsList] = useState([]); // fetched from backend
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Fetch available subjects from backend
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const res = await api.get("/subjects");
+        setSubjectsList(res.data);
+      } catch (err) {
+        console.error("❌ Error fetching subjects:", err.message);
+      }
+    };
+    fetchSubjects();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,20 +40,25 @@ const AddStudentForm = () => {
     }));
   };
 
+  const handleSubjectsChange = (e) => {
+    const options = Array.from(e.target.selectedOptions, (option) => option.value);
+    setFormData((prev) => ({
+      ...prev,
+      subjects: options,
+    }));
+  };
+
   const validate = () => {
     const newErrors = {};
-
     if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.admissionNumber.trim())
-      newErrors.admissionNumber = "Admission number is required";
+    if (!formData.admissionNumber.trim()) newErrors.admissionNumber = "Admission number is required";
     if (!formData.form.trim()) newErrors.form = "Form/class is required";
-
+    if (formData.subjects.length === 0) newErrors.subjects = "Select at least one subject";
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -50,14 +69,15 @@ const AddStudentForm = () => {
     setMessage("");
 
     try {
-      await api.post("/students", formData); // ✅ already using centralized API
+      await api.post("/students", formData); // send subjects too
       setMessage("✅ Student added successfully!");
       setFormData({
         name: "",
         admissionNumber: "",
         stream: "",
         parentPhone: "",
-        form: "", // ✅ reset correct field
+        form: "",
+        subjects: [],
       });
       setErrors({});
     } catch (error) {
@@ -65,7 +85,7 @@ const AddStudentForm = () => {
       setMessage(error.response?.data?.message || "❌ Error adding student.");
     } finally {
       setLoading(false);
-      setTimeout(() => setMessage(""), 4000); // clear message after 4 seconds
+      setTimeout(() => setMessage(""), 4000);
     }
   };
 
@@ -137,7 +157,24 @@ const AddStudentForm = () => {
         </div>
         {errors.form && <p className="error-text">{errors.form}</p>}
 
-        {/* Submit Button */}
+        {/* Subjects */}
+        <div className={`input-group ${errors.subjects ? "has-error" : ""}`}>
+          <label>Select Subjects:</label>
+          <select
+            multiple
+            value={formData.subjects}
+            onChange={handleSubjectsChange}
+          >
+            {subjectsList.map((subj) => (
+              <option key={subj._id} value={subj._id}>
+                {subj.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        {errors.subjects && <p className="error-text">{errors.subjects}</p>}
+
+        {/* Submit */}
         <button type="submit" disabled={loading} className="submit-btn">
           {loading ? "Adding..." : "Add Student"}
         </button>
