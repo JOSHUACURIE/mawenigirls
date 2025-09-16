@@ -5,25 +5,32 @@ const DOSResultsAnalysis = () => {
   const [selectedForm, setSelectedForm] = useState("");
   const [availableForms] = useState(["Form 1", "Form 2", "Form 3", "Form 4"]);
   const [analyzedResults, setAnalyzedResults] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch results already analyzed from backend
-  const fetchResultsByForm = async () => {
+  // Fetch analyzed results from backend
+  const fetchResults = async () => {
     if (!selectedForm) return setMessage("⚠️ Select a class");
 
     try {
       setLoading(true);
       setMessage("Loading results...");
-      const res = await api.get(`/results?form=${encodeURIComponent(selectedForm)}`);
-      const results = res.data || [];
+      const res = await api.get("/results", {
+        params: { form: selectedForm },
+      });
 
-      if (!results.length) {
+      if (!res.data || res.data.length === 0) {
         setMessage("⚠️ No results found for this class");
-      } else {
-        setAnalyzedResults(results);
-        setMessage(`✅ ${results.length} student records loaded`);
+        setAnalyzedResults([]);
+        return;
       }
+
+      // Extract subjects from first student
+      const subjectList = res.data[0].scores.map((s) => s.subjectName);
+      setSubjects(subjectList);
+      setAnalyzedResults(res.data);
+      setMessage(`✅ ${res.data.length} student records loaded`);
     } catch (err) {
       console.error("❌ Failed to fetch results:", err);
       setMessage("❌ Error fetching results");
@@ -32,14 +39,14 @@ const DOSResultsAnalysis = () => {
     }
   };
 
-  // Export all results to Excel
+  // Download all results as Excel from backend
   const handleExportToExcel = async () => {
-    if (analyzedResults.length === 0) return;
+    if (!selectedForm) return;
 
     try {
       const res = await api.post(
         "/results/export",
-        { results: analyzedResults, form: selectedForm },
+        { form: selectedForm },
         { responseType: "blob" }
       );
 
@@ -53,36 +60,42 @@ const DOSResultsAnalysis = () => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
-      setMessage(`✅ Excel exported successfully`);
     } catch (err) {
-      console.error("❌ Excel export error:", err);
+      console.error("❌ Failed to export Excel:", err);
       setMessage("❌ Failed to export Excel");
     }
   };
 
-  // Generate Word document for one student
+  // Generate individual Word report dynamically
   const handleDownloadIndividual = async (student) => {
     try {
-      // Dynamic import of docx only in browser
-      const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } = await import("docx");
+      const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } =
+        await import("docx");
 
-      const subjectRows = student.scores.map(({ subject, marks, grade }) =>
-        new TableRow({
-          children: [
-            new TableCell({ children: [new Paragraph(subject)] }),
-            new TableCell({ children: [new Paragraph(String(marks ?? "-"))] }),
-            new TableCell({ children: [new Paragraph(grade ?? "-")] }),
-          ],
-        })
+      const subjectRows = student.scores.map(
+        (s) =>
+          new TableRow({
+            children: [
+              new TableCell({ children: [new Paragraph(s.subjectName)] }),
+              new TableCell({ children: [new Paragraph(String(s.score ?? "-"))] }),
+              new TableCell({ children: [new Paragraph(s.grade ?? "-")]}),
+            ],
+          })
       );
 
       const doc = new Document({
         sections: [
           {
             children: [
-              new Paragraph({ children: [new TextRun({ text: "ST. PETERS MAWENI GIRLS SECONDARY SCHOOL", bold: true })] }),
-              new Paragraph({ children: [new TextRun("Terminal Examination Results")] }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "ST. PETERS MAWENI GIRLS SECONDARY SCHOOL",
+                    bold: true,
+                  }),
+                ],
+              }),
+              new Paragraph("Terminal Examination Results"),
               new Paragraph(""),
               new Paragraph(`Name: ${student.name}`),
               new Paragraph(`Admission No: ${student.admissionNumber}`),
@@ -109,7 +122,7 @@ const DOSResultsAnalysis = () => {
                     children: [
                       new TableCell({ children: [new Paragraph("Overall Grade")] }),
                       new TableCell({ children: [new Paragraph("")] }),
-                      new TableCell({ children: [new Paragraph(student.overallGrade ?? "-")] }),
+                      new TableCell({ children: [new Paragraph(student.overallGrade ?? "-")]}),
                     ],
                   }),
                 ],
@@ -123,7 +136,9 @@ const DOSResultsAnalysis = () => {
       });
 
       const buffer = await Packer.toBuffer(doc);
-      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -131,41 +146,48 @@ const DOSResultsAnalysis = () => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
-      setMessage(`✅ Word exported for ${student.name}`);
     } catch (err) {
-      console.error("❌ Word export error:", err);
-      setMessage(`❌ Failed to export result for ${student.name}`);
+      console.error("❌ Failed to download Word document:", err);
+      setMessage(`❌ Failed to export result for ${student.admissionNumber}`);
     }
   };
 
-  // Download all students individually in a zip
+  // Download all individual reports as ZIP
   const handleDownloadAllIndividual = async () => {
     if (analyzedResults.length === 0) return;
 
     try {
       const JSZip = (await import("jszip")).default;
-      const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } = await import("docx");
+      const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } =
+        await import("docx");
 
       const zip = new JSZip();
 
       for (const student of analyzedResults) {
-        const subjectRows = student.scores.map(({ subject, marks, grade }) =>
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph(subject)] }),
-              new TableCell({ children: [new Paragraph(String(marks ?? "-"))] }),
-              new TableCell({ children: [new Paragraph(grade ?? "-")] }),
-            ],
-          })
+        const subjectRows = student.scores.map(
+          (s) =>
+            new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph(s.subjectName)] }),
+                new TableCell({ children: [new Paragraph(String(s.score ?? "-"))] }),
+                new TableCell({ children: [new Paragraph(s.grade ?? "-")]}),
+              ],
+            })
         );
 
         const doc = new Document({
           sections: [
             {
               children: [
-                new Paragraph({ children: [new TextRun({ text: "ST. PETERS MAWENI GIRLS SECONDARY SCHOOL", bold: true })] }),
-                new Paragraph({ children: [new TextRun("Terminal Examination Results")] }),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "ST. PETERS MAWENI GIRLS SECONDARY SCHOOL",
+                      bold: true,
+                    }),
+                  ],
+                }),
+                new Paragraph("Terminal Examination Results"),
                 new Paragraph(""),
                 new Paragraph(`Name: ${student.name}`),
                 new Paragraph(`Admission No: ${student.admissionNumber}`),
@@ -192,7 +214,7 @@ const DOSResultsAnalysis = () => {
                       children: [
                         new TableCell({ children: [new Paragraph("Overall Grade")] }),
                         new TableCell({ children: [new Paragraph("")] }),
-                        new TableCell({ children: [new Paragraph(student.overallGrade ?? "-")] }),
+                        new TableCell({ children: [new Paragraph(student.overallGrade ?? "-")]}),
                       ],
                     }),
                   ],
@@ -217,10 +239,9 @@ const DOSResultsAnalysis = () => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
       setMessage(`✅ ${analyzedResults.length} individual reports downloaded`);
     } catch (err) {
-      console.error("❌ ZIP export error:", err);
+      console.error("❌ Failed to download ZIP:", err);
       setMessage("❌ Failed to export individual reports");
     }
   };
@@ -230,37 +251,54 @@ const DOSResultsAnalysis = () => {
       <h3>Results Analysis</h3>
 
       <div className="input-group">
-        <select value={selectedForm} onChange={(e) => setSelectedForm(e.target.value)}>
+        <select
+          value={selectedForm}
+          onChange={(e) => setSelectedForm(e.target.value)}
+        >
           <option value="">-- Select Form --</option>
           {availableForms.map((form) => (
-            <option key={form} value={form}>{form}</option>
+            <option key={form} value={form}>
+              {form}
+            </option>
           ))}
         </select>
 
-        <button onClick={fetchResultsByForm} disabled={loading}>
+        <button onClick={fetchResults} disabled={loading}>
           {loading ? "Loading..." : "Load Results"}
         </button>
 
-        <button onClick={handleExportToExcel} disabled={analyzedResults.length === 0}>
+        <button
+          onClick={handleExportToExcel}
+          disabled={analyzedResults.length === 0}
+        >
           Export All to Excel
         </button>
 
-        <button onClick={handleDownloadAllIndividual} disabled={analyzedResults.length === 0}>
+        <button
+          onClick={handleDownloadAllIndividual}
+          disabled={analyzedResults.length === 0}
+        >
           Download All Individual
         </button>
       </div>
 
-      {message && <div className={`message ${message.includes("❌") ? "error" : ""}`}>{message}</div>}
+      {message && (
+        <div className={`message ${message.includes("❌") ? "error" : ""}`}>
+          {message}
+        </div>
+      )}
 
-      <div className="score-table">
-        <h4>Results ({analyzedResults.length} students)</h4>
-        {analyzedResults.length > 0 && (
+      {analyzedResults.length > 0 && (
+        <div className="score-table">
+          <h4>Results ({analyzedResults.length} students)</h4>
           <table>
             <thead>
               <tr>
                 <th>Adm No</th>
                 <th>Name</th>
-                {analyzedResults[0].scores.map(s => <th key={s.subject}>{s.subject}</th>)}
+                {subjects.map((subj) => (
+                  <th key={subj}>{subj}</th>
+                ))}
                 <th>Total</th>
                 <th>Grade</th>
                 <th>Action</th>
@@ -271,9 +309,9 @@ const DOSResultsAnalysis = () => {
                 <tr key={idx}>
                   <td>{student.admissionNumber}</td>
                   <td>{student.name}</td>
-                  {student.scores.map(s => (
-                    <td key={s.subject}>
-                      {s.marks ?? "-"} {s.grade ?? ""}
+                  {student.scores.map((s, i) => (
+                    <td key={i}>
+                      {s.score ?? "-"} {s.grade ?? ""}
                     </td>
                   ))}
                   <td>{student.totalMarks ?? "-"}</td>
@@ -287,8 +325,8 @@ const DOSResultsAnalysis = () => {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
