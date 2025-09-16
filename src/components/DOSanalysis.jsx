@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
-import { generateExcel } from "../api/utils/generateExcel";
-import { analyzeStudentResults } from "../api/utils/analyzeStudentResult";
+
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
 
 const DOSResultsAnalysis = ({ gradingMethod = "points", className, stream }) => {
