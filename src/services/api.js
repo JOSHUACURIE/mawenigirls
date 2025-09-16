@@ -1,12 +1,12 @@
 import axios from "axios";
 
-// ✅ Create an Axios instance with corrected base URL
+// ✅ Axios instance
 const api = axios.create({
-  baseURL: "https://mawen.onrender.com/api", // ✅ Now includes /api
-  withCredentials: true, // Optional, useful if using cookies or auth headers
+  baseURL: "https://mawen.onrender.com/api",
+  withCredentials: true,
 });
 
-// ✅ Request interceptor to attach auth token
+// ✅ Attach auth token to all requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -18,11 +18,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ⚠️ Optional: Response interceptor for global error handling
+// Optional: global response error logging
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.message);
+    console.error("API Error:", error.response?.data?.message || error.message);
     return Promise.reject(error);
   }
 );
@@ -50,22 +50,22 @@ export const deleteStudent = (id) => api.delete(`/students/${id}`);
 // ===================== SCORE API =====================
 export const getScores = (params = {}) => api.get("/scores", { params });
 export const getScoreOptions = () => api.get("/scores/options");
-export const submitScores = (scores) => api.post("/scores", { scores });
-export const updateScore = (id, data) => api.put(`/scores/${id}`, data);
+export const submitScores = ({ teacherId, subjectId, scores }) =>
+  api.post("/scores", { teacherId, subjectId, scores });
+export const updateScore = (scoreId, data) => api.put(`/scores/${scoreId}`, data);
 
-// ===================== RESULT ANALYSIS API =====================
-export const generateResults = (scores) =>
-  api.post("/results/generate", { scores });
-export const exportAllResults = (scores) =>
-  api.post("/results/export", { scores }, { responseType: "blob" });
-export const exportClassResults = (scores, className, stream) =>
-  api.post(
-    "/results/class-results",
-    { scores, className, stream },
-    { responseType: "blob" }
-  );
-export const sendResultsSMS = (scores, className, stream) =>
-  api.post("/results/send-sms", { scores, className, stream });
+// ===================== RESULT API =====================
+export const generateResults = ({ className, stream }) =>
+  api.post("/results/generate", { class: className, stream });
+
+export const exportResultsToExcel = ({ className, stream }) =>
+  api.get("/results/export", {
+    params: { class: className, stream },
+    responseType: "blob",
+  });
+
+export const sendResultsSMS = ({ className, stream }) =>
+  api.post("/results/send-sms", { class: className, stream });
 
 // ===================== AUTH API =====================
 export const login = (data) => api.post("/auth/login", data);
