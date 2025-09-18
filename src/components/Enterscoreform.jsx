@@ -13,6 +13,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
 
   const validSubjects = Array.isArray(subjects) ? subjects : [];
 
+  // Fetch students whenever a subject is selected
   useEffect(() => {
     const fetchStudentsForSubject = async () => {
       if (!selectedSubject) return;
@@ -22,13 +23,17 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
 
       try {
         const response = await getSubjectStudents(selectedSubject);
-        const assignedStudents = Array.isArray(response.data.students) ? response.data.students : [];
+
+        // ✅ Corrected: students come from response.data.subject.students
+        const assignedStudents = response.data.subject?.students || [];
 
         if (assignedStudents.length === 0) {
           setMessage("No students assigned to this subject.");
         }
 
         setStudents(assignedStudents);
+
+        // Initialize scores array
         setScores(
           assignedStudents.map((s) => ({
             studentId: s._id,
@@ -36,7 +41,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
           }))
         );
       } catch (err) {
-        console.error("❌ Error fetching students:", err.message);
+        console.error("❌ Error fetching students:", err);
         setMessage(err.response?.data?.message || "Failed to load students.");
         setStudents([]);
         setScores([]);
@@ -48,6 +53,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
     fetchStudentsForSubject();
   }, [selectedSubject]);
 
+  // Handle individual score change
   const handleScoreChange = (index, value) => {
     if (value === "" || (/^\d{1,3}$/.test(value) && Number(value) <= 100)) {
       const updated = [...scores];
@@ -56,6 +62,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
     }
   };
 
+  // Submit scores to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -83,7 +90,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
       setMessage("✅ Scores submitted successfully!");
       setScores(scores.map((score) => ({ ...score, score: "" })));
     } catch (err) {
-      console.error("❌ Error submitting scores:", err.message);
+      console.error("❌ Error submitting scores:", err);
       setMessage(err.response?.data?.message || "❌ Failed to submit scores. Try again.");
     } finally {
       setSaving(false);
@@ -93,6 +100,7 @@ const EnterScoresForm = ({ teacher, subjects = [] }) => {
   return (
     <div className="enter-scores-form">
       <h3>📝 Submit Scores</h3>
+
       {message && (
         <p className={`form-message ${message.startsWith("✅") ? "success" : "error"}`}>
           {message}
