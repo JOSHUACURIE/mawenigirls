@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../services/api";
+import { getAssignedSubjects } from "../services/api";
 
 const AssignedSubjectsList = () => {
   const [subjects, setSubjects] = useState([]);
@@ -13,20 +13,17 @@ const AssignedSubjectsList = () => {
         setLoading(true);
         setError(null);
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("No authentication token found");
-        }
+        const response = await getAssignedSubjects();
 
-        // ✅ Call the updated endpoint for assigned subjects
-        const response = await api.get("/teachers/me/subjects");
+        // ✅ Handle both shapes
+        const data = response.data;
+        const subjectsArray = Array.isArray(data) ? data : data.subjects;
 
-        // Validate the response
-        if (!response.data || !Array.isArray(response.data.subjects)) {
+        if (!subjectsArray || !Array.isArray(subjectsArray)) {
           throw new Error("No subjects assigned to this teacher.");
         }
 
-        setSubjects(response.data.subjects);
+        setSubjects(subjectsArray);
       } catch (err) {
         console.error("Error loading subjects:", err);
 
@@ -105,7 +102,7 @@ const AssignedSubjectsList = () => {
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <div>
-                    <strong>{subject.name}</strong> - Form {subject.form}
+                    <strong>{subject.name}</strong> - {subject.form}
                   </div>
                   <span className="badge bg-primary rounded-pill">
                     {subject.students?.length ?? 0} students
